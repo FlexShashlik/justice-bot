@@ -32,8 +32,7 @@ func main() {
 
 	api := vk.New("ru")
 	//Get token - https://oauth.vk.com/authorize?client_id={YOUR-APP-ID}&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=offline+messages&response_type=token&v=5.92&state=123456
-
-	err := api.Init("TOKEN")
+	err := api.Init("{TOKEN}")
 
 	if err != nil {
 		log.Fatalln(err)
@@ -50,6 +49,10 @@ func main() {
 	fmt.Println("Success!")
 
 	c := session.DB("bot").C("messages")
+
+	/*fmt.Println(api.Messages.GetByID(vk.RequestParams{
+		"message_ids": "859960",
+	}))*/
 
 	api.OnNewMessage(func(msg *vk.LPMessage) {
 		//Add message to collection
@@ -100,41 +103,22 @@ func main() {
 					}
 				} else {
 					if message.FromID != "{YOUR-ID}" {
-						api.Messages.Send(vk.RequestParams{
-							"peer_id":    strconv.FormatInt(message.PeerID, 10),
-							"message":    "Удалено сообщение от *id" + message.FromID + ".\n" + "Текст сообщения(первая часть):\n\"" + message.Text[0:len(message.Text)/4] + "\"",
-							"attachment": message.Attachments,
-							"random_id":  strconv.FormatInt(rand.Int63n(MaxInt), 10),
-						})
+						var j int64
+						j = 1
 
-						time.Sleep(2 * time.Second)
+						offset := 1000
 
-						api.Messages.Send(vk.RequestParams{
-							"peer_id":    strconv.FormatInt(message.PeerID, 10),
-							"message":    "Удалено сообщение от *id" + message.FromID + ".\n" + "Текст сообщения(вторая часть):\n\"" + message.Text[len(message.Text)/4:len(message.Text)/2] + "\"",
-							"attachment": message.Attachments,
-							"random_id":  strconv.FormatInt(rand.Int63n(MaxInt), 10),
-						})
+						for i := 0; i < len(message.Text)-offset; i += offset {
+							api.Messages.Send(vk.RequestParams{
+								"peer_id":    strconv.FormatInt(message.PeerID, 10),
+								"message":    "Удалено сообщение от *id" + message.FromID + ".\n" + "Текст сообщения(" + strconv.FormatInt(j, 10) + " часть):\n\"" + message.Text[i:i+offset] + "\"",
+								"attachment": message.Attachments,
+								"random_id":  strconv.FormatInt(rand.Int63n(MaxInt), 10),
+							})
 
-						time.Sleep(3 * time.Second)
-
-						api.Messages.Send(vk.RequestParams{
-							"peer_id":    strconv.FormatInt(message.PeerID, 10),
-							"message":    "Удалено сообщение от *id" + message.FromID + ".\n" + "Текст сообщения(третья часть):\n\"" + message.Text[len(message.Text)/2:len(message.Text)-len(message.Text)/4] + "\"",
-							"attachment": message.Attachments,
-							"random_id":  strconv.FormatInt(rand.Int63n(MaxInt), 10),
-						})
-
-						time.Sleep(4 * time.Second)
-
-						api.Messages.Send(vk.RequestParams{
-							"peer_id":    strconv.FormatInt(message.PeerID, 10),
-							"message":    "Удалено сообщение от *id" + message.FromID + ".\n" + "Текст сообщения(четвертая часть):\n\"" + message.Text[len(message.Text)-len(message.Text)/4:len(message.Text)] + "\"",
-							"attachment": message.Attachments,
-							"random_id":  strconv.FormatInt(rand.Int63n(MaxInt), 10),
-						})
-
-						time.Sleep(5 * time.Second)
+							time.Sleep(3 * time.Second)
+							j++
+						}
 					}
 				}
 
