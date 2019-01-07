@@ -50,10 +50,6 @@ func main() {
 
 	c := session.DB("bot").C("messages")
 
-	/*fmt.Println(api.Messages.GetByID(vk.RequestParams{
-		"message_ids": "859960",
-	}))*/
-
 	api.OnNewMessage(func(msg *vk.LPMessage) {
 		//Add message to collection
 		message := new(Message)
